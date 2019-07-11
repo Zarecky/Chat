@@ -1,8 +1,8 @@
-const User = require('../model/user').User;
+const { User } = require('../model/user');
 
 exports.http = async (req, res, next) => {
   try {
-    req.user = await User.findById(req.user._id);
+    req.user = await User.query().findById(req.user.id);
     next();
   } catch (err) {
     next(err)
@@ -11,7 +11,7 @@ exports.http = async (req, res, next) => {
 
 exports.ws = async (socket, next) => {
   try {
-    socket.user = await User.findById(socket.user._id);
+    socket.user = await User.query().findById(socket.user.id);
     next();
   } catch (err) {
     next(err)

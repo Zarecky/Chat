@@ -17,11 +17,11 @@ const socket = {
       cb(data);
     });
   },
-  sendMessage(message, date) {
-    this.socket.emit('request', {message, date});
+  sendMessage(message, created) {
+    this.socket.emit('request', {message, created});
   },
   disconnet() {
-    this.socket.emit('disconnect', {date: Date.now()});
+    this.socket.emit('disconnect', {created: Date.now()});
   }
 };
 

@@ -2,17 +2,11 @@ const createError = require('http-errors');
 const express = require('express');
 const logger = require('morgan');
 const dotenv = require('dotenv');
-const mongoose = require('mongoose');
 
 dotenv.config();
 
 const app = express();
 
-//Connect to DB
-mongoose.connect(process.env.DB_URI, {
-  "useNewUrlParser": true,
-  "useMongoClient": true
-});
 
 //Import middleware
 const auth = require('./middleware/auth').http;

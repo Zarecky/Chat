@@ -1,7 +1,7 @@
 const socket = require('socket.io');
 const logger = require('morgan');
 
-const Message = require('./model/message');
+const { Message } = require('./model/message');
 
 //Middleware
 const auth = require('./middleware/auth').ws;
@@ -18,14 +18,15 @@ io.use(loadUser);
 io.sockets.on('connection', async socket => {
   console.log('Successful connection');
 
-  const username = socket.user.name;
+  const id = socket.user.id;
+
   const message = new Message({
     type: 'SERVICE_CONNECT',
-    user: username,
-    date: Date.now()
+    user_id: id,
+    created: new Date(Date.now()).toISOString()
   });
   await message.save();
-  const messages = await Message.find();
+  const messages = await Message.getAllByOrder();
 
   io.sockets.emit('response', messages);
 
@@ -33,11 +34,11 @@ io.sockets.on('connection', async socket => {
     console.log('Successful disconnection');
     const message = new Message({
       type: 'SERVICE_DISCONNECT',
-      user: username,
-      date: Date.now()
+      user_id: id,
+      created: new Date(Date.now()).toISOString()
     });
     await message.save();
-    const messages = await Message.find();
+    const messages = await Message.getAllByOrder();
 
     io.sockets.emit('response', messages);
   });
@@ -45,9 +46,9 @@ io.sockets.on('connection', async socket => {
   socket.on('request', async req => {
     const message = new Message({
       message: req.message,
-      date: req.date,
+      created: new Date(req.created).toISOString(),
       type: 'USER',
-      user: username
+      user_id: id
     });
     const savedMessage = await message.save();
 

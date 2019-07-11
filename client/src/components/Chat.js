@@ -2,6 +2,8 @@ import React from 'react';
 import {Button, Col, FormGroup, Input, Row, Form} from "reactstrap";
 import socket from '../API/socket';
 import Message from "./Message";
+import {Redirect} from "react-router-dom";
+import {state} from "../index"
 
 
 export default class Chat extends React.Component {
@@ -55,6 +57,10 @@ export default class Chat extends React.Component {
   }
 
   render() {
+    if (!state.user.authenticated) {
+      return <Redirect to="/login"/>
+    }
+
     return [
       <Row>
         <h1>Chat room</h1>

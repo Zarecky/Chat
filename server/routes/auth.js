@@ -15,7 +15,7 @@ router.post('/register', async (req, res, next) => {
   const {name, pass} = req.body;
   
   try {
-    const existUser = await User.findOne({name});
+    const existUser = await User.query().findOne({name});
 
     if (existUser) {
       return res.status(400).send('Such user already exists')
@@ -23,7 +23,7 @@ router.post('/register', async (req, res, next) => {
 
     const user = new User({name, pass});
     const savedUser = await user.save();
-    const token = jwt.sign({_id: savedUser._id}, process.env.TOKEN_SECRET);
+    const token = jwt.sign({id: savedUser.id}, process.env.TOKEN_SECRET);
 
     res.header('auth-token', token).send();
   } catch (err) {
@@ -42,7 +42,7 @@ router.post('/login', async (req, res, next) => {
   try {
     const user = await User.authorize(name, pass);
 
-    const token = jwt.sign({_id: user._id}, process.env.TOKEN_SECRET);
+    const token = jwt.sign({id: user.id}, process.env.TOKEN_SECRET);
     res.header('auth-token', token).send();
   } catch (err) {
     if (err instanceof AuthError) {

@@ -3,10 +3,11 @@ import {Alert, Col, Row} from "reactstrap";
 import {getDate, state} from "../index";
 
 export default function Message(props) {
+  console.log(props.type);
   if (props.type === 'USER') {
     const date = (
       <div className="text-black-50 ml-2 mr-2">
-        {getDate(props.date)}
+        {getDate(props.created)}
       </div>);
 
     return (
@@ -26,7 +27,7 @@ export default function Message(props) {
       <Row>
         <Col>
           <div className="text-center text-black-50 m-2">
-            User "{props.user}" {props.type === 'SERVICE_DISCONNECT' ? 'left chat' : 'joined'} at {getDate(props.date)}
+            User "{props.user}" {props.type === 'SERVICE_DISCONNECT' ? 'left chat' : 'joined'} at {getDate(props.created)}
           </div>
         </Col>
       </Row>
