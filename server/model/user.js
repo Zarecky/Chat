@@ -1,9 +1,8 @@
-const crypto = require('crypto');
-const { Model } = require('../lib/knex');
+const crypto = require("crypto");
+const { Model } = require("../lib/knex");
 const { Message } = require("./message");
 
 class User extends Model {
-
   constructor(obj) {
     super();
 
@@ -18,15 +17,12 @@ class User extends Model {
 
   set pass(pass) {
     this._plainPass = pass;
-    this.salt = Math.random() + '';
+    this.salt = Math.random() + "";
     this.hashed_pass = this.encryptPassword(pass);
   }
 
   encryptPassword(pass) {
-    return crypto
-      .createHmac('sha1', this.salt)
-      .update(pass)
-      .digest('hex');
+    return crypto.createHmac("sha1", this.salt).update(pass).digest("hex");
   }
 
   checkPassword(pass) {
@@ -36,35 +32,35 @@ class User extends Model {
   async save() {
     return await User.query().insert({
       ...this,
-      _plainPass: undefined
+      _plainPass: undefined,
     });
   }
 
   static async authorize(name, pass) {
     const User = this;
-    const existUser = await User.query().findOne({name});
+    const existUser = await User.query().findOne({ name });
 
     if (existUser && existUser.checkPassword(pass)) {
       return existUser;
     }
-    throw new AuthError('Invalid password');
+    throw new AuthError("Invalid password");
   }
 
   static get tableName() {
-    return 'user';
+    return "user";
   }
 
   static get relationMappings() {
     return {
-      message: {
+      messages: {
         relation: Model.HasManyRelation,
         modelClass: Message,
         join: {
-          from: 'user.id',
-          to: 'message.user_id'
-        }
-      }
-    }
+          from: "user.id",
+          to: "message.user_id",
+        },
+      },
+    };
   }
 }
 

@@ -1,18 +1,20 @@
-import React from 'react';
-import {Button, Col, FormGroup, Input, Row, Form} from "reactstrap";
-import socket from '../API/socket';
-import Message from "./Message";
-import {Redirect} from "react-router-dom";
-import {state} from "../index"
+import React from "react";
+import { Button, Col, FormGroup, Input, Row, Form } from "reactstrap";
+import { Redirect, withRouter } from "react-router-dom";
 
+import Message from "../components/Message";
+import { state } from "../index";
+import socket from "../API/socket";
+import { getRoom } from "../API/rooms";
 
-export default class Chat extends React.Component {
+class Room extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      message: '',
-      messages: []
+      room: {},
+      message: "",
+      messages: [],
     };
 
     this.container = React.createRef();
@@ -24,19 +26,23 @@ export default class Chat extends React.Component {
   }
 
   getMessage(data) {
-    this.setState((prevState) => ({messages: [...prevState.messages, ...data]}));
+    this.setState((prevState) => ({
+      messages: [...prevState.messages, ...data],
+    }));
     this.scrollToBottom();
-  };
+  }
 
   scrollToBottom() {
     const container = this.container.current;
-    container.scrollTop = container.scrollHeight - container.clientHeight;
+    if (container) {
+      container.scrollTop = container.scrollHeight - container.clientHeight;
+    }
   }
 
   handleChange(e) {
     const message = e.target.value;
     this.setState(() => ({
-      message
+      message,
     }));
   }
 
@@ -45,11 +51,12 @@ export default class Chat extends React.Component {
 
     const now = Date.now();
     socket.sendMessage(this.state.message, now);
-    this.setState(() => ({message: ""}));
-  };
+    this.setState(() => ({ message: "" }));
+  }
 
   componentDidMount() {
-    socket.connect(this.getMessage);
+    getRoom(this.props.match.params.id, (err, room) => this.setState({ room }));
+    socket.connect(this.props.match.params.id, this.getMessage);
   }
 
   componentWillUnmount() {
@@ -58,23 +65,23 @@ export default class Chat extends React.Component {
 
   render() {
     if (!state.user.authenticated) {
-      return <Redirect to="/login"/>
+      return <Redirect to="/login" />;
     }
 
     return [
       <Row>
-        <h1>Chat room</h1>
+        <h1>{this.state.room.title}</h1>
       </Row>,
       <Row>
         <Col>
           <div
             ref={this.container}
             className="border border-danger rounded p-3 mb-3 overflow-auto"
-            style={{height: '60vh'}}
+            style={{ height: "60vh" }}
           >
-            {this.state.messages
-              .map(item => <Message {...item}/>)
-            }
+            {this.state.messages.map((item) => (
+              <Message {...item} />
+            ))}
           </div>
         </Col>
       </Row>,
@@ -92,11 +99,15 @@ export default class Chat extends React.Component {
                   value={this.state.message}
                 />
               </Col>
-              <Button onClick={this.handleSend} outline color="danger">Send</Button>
+              <Button onClick={this.handleSend} outline color="danger">
+                Send
+              </Button>
             </FormGroup>
           </Form>
         </Col>
-      </Row>
+      </Row>,
     ];
   }
 }
+
+export default withRouter(Room);

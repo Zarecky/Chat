@@ -1,11 +1,8 @@
 // Update with your config settings.
 
 module.exports = {
-  client: 'pg',
+  client: "sqlite3",
   connection: {
-    host: 'localhost',
-    database: 'chat',
-    user: 'postgres',
-    password: '12345'
-  }
+    filename: "../db.sqlite",
+  },
 };

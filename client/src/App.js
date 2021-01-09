@@ -1,17 +1,20 @@
-import React from 'react';
-import Layout from './components/Layout';
-import {Route} from 'react-router-dom';
-import Login from "./components/Login";
-import Register from "./components/Register";
-import Chat from "./components/Chat";
+import React from "react";
+import { Route } from "react-router-dom";
+
+import Layout from "./components/Layout";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Room from "./pages/Room";
+import Rooms from "./pages/Rooms";
 
 export default function App() {
   return (
     <Layout>
-      <Route exact path='/' />
-      <Route path='/login' component={Login} />
-      <Route path='/register' component={Register} />
-      <Route path='/chat' component={Chat} />
+      <Route exact path="/" />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route exact path="/rooms" component={Rooms} />
+      <Route path="/rooms/:id" component={Room} />
     </Layout>
   );
 }

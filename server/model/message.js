@@ -1,6 +1,7 @@
-const { Model } = require('../lib/knex');
-const us = require('./user');
-const knex = require('knex');
+const { Model } = require("../lib/knex");
+const u = require("./user");
+const { Room } = require("./room");
+const knex = require("knex");
 
 class Message extends Model {
   constructor(obj) {
@@ -12,38 +13,51 @@ class Message extends Model {
   }
 
   async save() {
-     const user = await us.User.query().findById(this.user_id);
-     const message = await user.$relatedQuery('message').insert({
-       ...this,
-       user_id: undefined
-     });
-     return {
-       ...message,
-       user: user.name
-     }
+    await Message.query().insert({
+      ...this,
+    });
   }
 
-  static async getAllByOrder() {
-    return await Message.query()
-      .select('message', 'user.name as user', 'message.created', 'type')
-      .joinRelation('user').orderBy('created');
+  static async create(user, room, type, message = undefined) {
+    const instance = new Message({
+      created_at: Date.now(),
+      user_id: user.id,
+      room_id: room.id,
+      type,
+      message,
+    });
+    await instance.save();
+    return {
+      ...instance,
+      user_id: undefined,
+      room_id: undefined,
+      user: user.name,
+    };
   }
 
   static get tableName() {
-    return 'message';
+    return "message";
   }
 
   static get relationMappings() {
     return {
       user: {
         relation: Model.BelongsToOneRelation,
-        modelClass: us.User,
+        modelClass: u.User,
         join: {
-          from: 'message.user_id',
-          to: 'user.id'
-        }
-      }
-    }
+          from: "message.user_id",
+          to: "user.id",
+        },
+      },
+      room: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: Room,
+        join: {
+          from: "message.room_id",
+          to: "room.id",
+        },
+      },
+    };
   }
 }
 

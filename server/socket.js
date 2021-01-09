@@ -1,59 +1,39 @@
-const socket = require('socket.io');
-const logger = require('morgan');
+const socket = require("socket.io");
+const logger = require("morgan");
 
-const { Message } = require('./model/message');
+const { Message } = require("./model/message");
 
 //Middleware
-const auth = require('./middleware/auth').ws;
-const loadUser = require('./middleware/loadUser').ws;
+const auth = require("./middleware/auth").ws;
+const loadUser = require("./middleware/loadUser").ws;
+const loadRoom = require("./middleware/loadRoom").ws;
 
 const io = new socket();
 
-io.set('origins', 'localhost:*');
-io.set('logger', logger);
+io.set("origins", "localhost:*");
+io.set("logger", logger);
 
 io.use(auth);
 io.use(loadUser);
+io.use(loadRoom);
 
-io.sockets.on('connection', async socket => {
-  console.log('Successful connection');
+io.sockets.on("connection", async (socket) => {
+  const { room, user } = socket;
 
-  const id = socket.user.id;
+  await Message.create(user, room, "SERVICE_CONNECT");
+  const messages = await room.getMessages();
+  io.to(room.id.toString()).emit("response", messages);
 
-  const message = new Message({
-    type: 'SERVICE_CONNECT',
-    user_id: id,
-    created: new Date(Date.now()).toISOString()
-  });
-  await message.save();
-  const messages = await Message.getAllByOrder();
-
-  io.sockets.emit('response', messages);
-
-  socket.on('disconnect', async () => {
-    console.log('Successful disconnection');
-    const message = new Message({
-      type: 'SERVICE_DISCONNECT',
-      user_id: id,
-      created: new Date(Date.now()).toISOString()
-    });
-    await message.save();
-    const messages = await Message.getAllByOrder();
-
-    io.sockets.emit('response', messages);
+  socket.on("disconnect", async () => {
+    console.log("svawe");
+    const savedMessage = await Message.create(user, room, "SERVICE_DISCONNECT");
+    io.to(room.id.toString()).emit("response", [savedMessage]);
   });
 
-  socket.on('request', async req => {
-    const message = new Message({
-      message: req.message,
-      created: new Date(req.created).toISOString(),
-      type: 'USER',
-      user_id: id
-    });
-    const savedMessage = await message.save();
-
-    io.sockets.emit('response', [savedMessage]);
-  })
+  socket.on("request", async (req) => {
+    const savedMessage = await Message.create(user, room, "USER", req.message);
+    io.to(room.id.toString()).emit("response", [savedMessage]);
+  });
 });
 
 module.exports = io;
